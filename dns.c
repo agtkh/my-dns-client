@@ -177,7 +177,7 @@ int dns_encode_name(char *name, char *output, int output_size) {
 /**
  * @brief qnameエントリ用の形式を名前に変換する関数
  *
- * @param data qnameエントリ用の形式
+ * @param data qnameエントリ用の形式(0で終端)
  * @param output 変換後の名前
  * @param output_size 変換後の名前の最大サイズ
  * @return int
@@ -186,6 +186,10 @@ int dns_decode_name(char *data, char *output, int output_size) {
     int output_index = 0;
     int data_index = 0;
     while (data[data_index] != '\0') {
+        if (output_index >= output_size - 1) {
+            fprintf(stderr, "output size over\n");
+            return -1;
+        }
         int label_len = data[data_index];
         for (int i = 0; i < label_len; i++) {
             output[output_index++] = data[data_index + 1 + i];
@@ -283,7 +287,7 @@ void print_hex(char *data, int size) {
 }
 
 /**
- * @brief アドレスを文字列として表示する関数(デバッグ用)
+ * @brief アドレスを文字列として表示する関数
  *
  * @param data アドレス
  * @param size アドレスのサイズ
@@ -296,19 +300,22 @@ void print_addr(char *data, int size) {
             }
             printf("%d", (u_int8_t)data[i]);
         }
-    } else if (size == 16) {
-        for (int i = 0; i < 16; i += 2) {
+    } else {
+        for (int i = 0; i < size; i += 2) {
             if (i != 0) {
                 printf(":");
             }
             printf("%02x%02x", (u_int8_t)data[i], (u_int8_t)data[i + 1]);
         }
-    } else {
-        fprintf(stderr, "invalid addr size");
     }
     printf("\n");
 }
 
+/**
+ * @brief DNSの reply code に対応するメッセージを表示する関数
+ * 
+ * @param reply_code 
+ */
 void print_reply_code_msg(u_int8_t reply_code) {
     switch (reply_code) {
         case 0:
@@ -390,14 +397,14 @@ int dns_request(char *name, char *dns_addr, int dns_port) {
         char decoded_name[256];
         dns_decode_name(answer.name, decoded_name, sizeof(decoded_name));
 
-        char type_str[10];
-        dns_type_to_str(ntohs(answer.type), type_str, sizeof(type_str));
+        // char type_str[10];
+        // dns_type_to_str(ntohs(answer.type), type_str, sizeof(type_str));
 
         // 結果を表示
         printf("\n-- answer #%d --\n", i + 1);
-        printf("name: %s\n", decoded_name);
-        printf("type: %s\n", type_str);
-        printf("result: ");
+        printf("Name:\t%s\n", decoded_name);
+        // printf("Type:\t%s\n", type_str);
+        printf("Address: ");
         print_addr(answer.rdata, ntohs(answer.rdlength));
     }
 
