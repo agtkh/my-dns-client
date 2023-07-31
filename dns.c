@@ -12,6 +12,9 @@
 
 #define BUF_SIZE 512
 
+#define MDNS_ADDR "224.0.0.251"
+#define MDNS_PORT 5353
+
 // DNSレコードタイプ
 enum dns_record_type {
     DNS_TYPE_A = 1,      // ホストアドレス
@@ -111,8 +114,8 @@ int udp_send(char *addr, int port, void *data, int data_size, void *recv_buf, in
         return -1;
     }
 
-    // タイムアウトを設定(3sec, 0msec)
-    struct timeval tv = {3, 0};
+    // タイムアウトを設定(0sec, 500 * 1000 micro sec)
+    struct timeval tv = {0, 500 * 1000};
     setsockopt(cl_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 
     // 宛先IPとポート番号
@@ -319,25 +322,25 @@ void print_addr(char *data, int size) {
 void print_reply_code_msg(u_int8_t reply_code) {
     switch (reply_code) {
         case 0:
-            printf("#0 No error\n");
+            printf("No error\n");
             break;
         case 1:
-            printf("#1 Format error\n");
+            printf("Format error\n");
             break;
         case 2:
-            printf("#2 Server failure\n");
+            printf("Server failure\n");
             break;
         case 3:
-            printf("#3 Name error\n");
+            printf("Name error\n");
             break;
         case 4:
-            printf("#4 Not implemented\n");
+            printf("Not implemented\n");
             break;
         case 5:
-            printf("#5 Refused\n");
+            printf("Refused\n");
             break;
         default:
-            printf("#%d Unknown error\n", reply_code);
+            printf("Unknown error#%d\n", reply_code);
             break;
     }
 }
@@ -380,7 +383,8 @@ int dns_request(char *name, char *dns_addr, int dns_port) {
     int reply_code = ntohs(recv_header->flags) & 0x000F;
     if (reply_code != 0) {
         print_reply_code_msg(reply_code);
-        return -1;
+        // 名前解決失敗 (機能としては成功している)
+        return 0;
     }
 
     // Queryエントリのパース(読み飛ばし)
@@ -401,12 +405,17 @@ int dns_request(char *name, char *dns_addr, int dns_port) {
         // dns_type_to_str(ntohs(answer.type), type_str, sizeof(type_str));
 
         // 結果を表示
-        printf("\n-- answer #%d --\n", i + 1);
+        printf("-- answer #%d --\n", i + 1);
         printf("Name:\t%s\n", decoded_name);
         // printf("Type:\t%s\n", type_str);
         printf("Address: ");
         print_addr(answer.rdata, ntohs(answer.rdlength));
+        printf("\n");
     }
 
     return 0;
+}
+
+int mdns_request(char *name) {
+    return dns_request(name, MDNS_ADDR, MDNS_PORT);
 }

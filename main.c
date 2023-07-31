@@ -8,6 +8,11 @@ int main(int argc, char *argv[]) {
     char *dns_server_addr = "8.8.8.8";
     int dns_server_port = 53;
 
+    // char *dns_server_addr = "224.0.0.251";
+    // int dns_server_port = 5353;
+
+    _Bool use_mdns = 1;
+
     // check arguments
     if (argc < 2) {
         fprintf(stderr, "Usage: %s <domain> [dns_server_addr] [dns_server_port]\n", argv[0]);
@@ -15,15 +20,26 @@ int main(int argc, char *argv[]) {
     }
     if (argc > 2) {
         dns_server_addr = argv[2];
+        use_mdns = 0;
     }
     if (argc > 3) {
         dns_server_port = atoi(argv[3]);
     }
 
     // send dns request
+    printf("DNS Server:\t%s#%d\n", dns_server_addr, dns_server_port);
     if (dns_request(argv[1], dns_server_addr, dns_server_port) == -1) {
         fprintf(stderr, "dns_request failed\n");
         return EXIT_FAILURE;
+    }
+
+    // send mdns request
+    if (use_mdns) {
+        printf("\nmDNS\n");
+        if (mdns_request(argv[1]) == -1) {
+            fprintf(stderr, "mdns_request failed\n");
+            return EXIT_FAILURE;
+        }
     }
     return EXIT_SUCCESS;
 }

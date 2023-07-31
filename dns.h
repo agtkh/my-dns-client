@@ -11,4 +11,12 @@
  */
 int dns_request(char *name, char *dns_addr, int dns_port);
 
+/**
+ * @brief mDNSで名前解決を要求する
+ * 
+ * @param name 名前解決の対象
+ * @return int 失敗時は-1
+ */
+int mdns_request(char *name);
+
 #endif
