@@ -114,7 +114,7 @@ int udp_send(char *addr, int port, void *data, int data_size, void *recv_buf, in
         return -1;
     }
 
-    // タイムアウトを設定(0sec, 500 * 1000 micro sec)
+    // タイムアウトを設定(0sec, 500 * 1000 micro sec) = 0.5sec
     struct timeval tv = {0, 500 * 1000};
     setsockopt(cl_socket, SOL_SOCKET, SO_RCVTIMEO, (const char *)&tv, sizeof(tv));
 

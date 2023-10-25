@@ -8,9 +8,6 @@ int main(int argc, char *argv[]) {
     char *dns_server_addr = "8.8.8.8";
     int dns_server_port = 53;
 
-    // char *dns_server_addr = "224.0.0.251";
-    // int dns_server_port = 5353;
-
     _Bool use_mdns = 1;
 
     // check arguments
@@ -35,7 +32,7 @@ int main(int argc, char *argv[]) {
 
     // send mdns request
     if (use_mdns) {
-        printf("\nmDNS\n");
+        printf("\nMulticast DNS (mDNS)\n");
         if (mdns_request(argv[1]) == -1) {
             fprintf(stderr, "mdns_request failed\n");
             return EXIT_FAILURE;
